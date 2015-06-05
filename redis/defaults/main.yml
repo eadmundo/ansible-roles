@@ -1,0 +1,10 @@
+---
+redis_version: "3.0.1"
+redis_download_url: "http://download.redis.io/releases"
+redis_install_directory: "/opt/redis"
+redis_conf_directory: "/etc/redis"
+redis_files_directory: "/var/redis"
+redis_port: 6379
+redis_init_script_path: "/etc/init/redis-server.conf"
+redis_log_directory: "/var/log/redis"
+redis_logfile_location: "{{redis_log_directory}}/redis_{{redis_port}}.log"

@@ -1,0 +1,7 @@
+---
+elasticsearch_version: "1.5.2"
+jdk_pkg: "openjdk-7-jre-headless"
+elasticsearch_download_url: "https://download.elastic.co/elasticsearch/elasticsearch"
+elasticsearch_download_directory: "/opt/elasticsearch"
+elasticsearch_number_of_shards: 5
+elasticsearch_number_of_replicas: 1

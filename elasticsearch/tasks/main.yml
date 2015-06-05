@@ -1,0 +1,38 @@
+---
+
+- name: install jdk
+  apt: pkg={{jdk_pkg}} state=installed update_cache=yes
+
+- name: create elasticsearch directory
+  file: path={{elasticsearch_download_directory}} state=directory mode=0755
+
+- name: download elasticsearch
+  get_url: url={{elasticsearch_download_url}}/elasticsearch-{{elasticsearch_version}}.deb dest={{elasticsearch_download_directory}}/elasticsearch-{{elasticsearch_version}}.deb mode=0440
+
+- name: install elasticsearch
+  command: dpkg -i {{elasticsearch_download_directory}}/elasticsearch-{{elasticsearch_version}}.deb creates=/usr/share/elasticsearch/lib/elasticsearch-{{ elasticsearch_version }}.jar
+  notify: restart elasticsearch
+
+- name: install head plugin
+  command: /usr/share/elasticsearch/bin/plugin -install mobz/elasticsearch-head creates=/usr/share/elasticsearch/plugins/head
+
+- name: elasticsearch config
+  template: src=elasticsearch.yml dest=/etc/elasticsearch/elasticsearch.yml
+  notify: restart elasticsearch
+
+# - name: create templates directory
+#   file: path=/etc/elasticsearch/templates state=directory
+
+# - name: events index template
+#   copy: src=/vagrant/funlists/event/mappings/events_index_template.json dest=/etc/elasticsearch/templates/events_index_template.json
+
+# - name: install head plugin
+#   command: /usr/share/elasticsearch/bin/plugin -install mobz/elasticsearch-head creates=/usr/share/elasticsearch/plugins/head
+#   sudo: yes
+
+# - name: ensure elasticsearch starts on boot
+#   command: update-rc.d elasticsearch defaults 95 10 creates=/etc/rc2.d/S95elasticsearch
+#   sudo: yes
+
+# - name: wait for elasticsearch to start
+#   wait_for: port=9200 delay=5

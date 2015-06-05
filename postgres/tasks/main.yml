@@ -1,0 +1,50 @@
+---
+
+- name: add postgresql gpg key
+  sudo: yes
+  shell: wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add - creates=/etc/apt/trusted.gpg.d/apt.postgresql.org.gpg
+
+- name: add postgresql apt sources list
+  sudo: yes
+  shell: echo 'deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main' >> /etc/apt/sources.list.d/postgresql.list creates=/etc/apt/sources.list.d/postgresql.list
+
+- name: install postgresql packages
+  apt: pkg={{ item }} state=installed update_cache=yes
+  sudo: yes
+  with_items:
+    - postgresql-{{postgresql_version}}
+    - libpq-dev
+    - python-psycopg2
+
+- name: ensure database is created
+  postgresql_db: name={{dbname}} encoding='UTF-8' lc_collate='en_US.UTF-8' lc_ctype='en_US.UTF-8' template='template0'
+  sudo: yes
+  sudo_user: postgres
+
+- name: ensure user has access to database
+  postgresql_user: db={{dbname}} name={{dbuser}} password={{dbpassword}} priv=ALL
+  sudo: yes
+  sudo_user: postgres
+
+- name: ensure user does not have unnecessary privilege
+  postgresql_user: name={{dbuser}} role_attr_flags=NOSUPERUSER,NOCREATEDB
+  sudo: yes
+  sudo_user: postgres
+
+- name: make postgres listen to everyone
+  lineinfile:
+    dest=/etc/postgresql/{{postgresql_version}}/main/postgresql.conf
+    line="listen_addresses = '*'"
+  when: development
+  notify:
+    - restart postgresql
+
+- name: be very trusting in pg_hba.conf
+  lineinfile:
+    dest=/etc/postgresql/{{postgresql_version}}/main/pg_hba.conf
+    line='host    all             all             0.0.0.0/0               trust'
+    state=present
+    insertafter='# IPv4 local connections:'
+  when: development
+  notify:
+    - restart postgresql
